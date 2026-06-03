@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>实验管理员控制台 - 公共物品博弈</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        header p {
+            font-size: 1.2em;
+            opacity: 0.8;
+        }
+
+        .admin-panel {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .control-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .control-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .control-card h3 {
+            margin-bottom: 15px;
+            color: #667eea;
+        }
+
+        .control-card .value {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .control-card .label {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9em;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            font-size: 1.1em;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 5px;
+            font-weight: bold;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(231, 76, 60, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(39, 174, 96, 0.4);
+        }
+
+        .players-comparison {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .player-monitor {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 25px;
+            border: 2px solid;
+            transition: all 0.3s ease;
+        }
+
+        .player-monitor.player1 {
+            border-color: #667eea;
+        }
+
+        .player-monitor.player2 {
+            border-color: #764ba2;
+        }
+
+        .player-monitor h2 {
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .player-monitor.player1 h2 {
+            color: #667eea;
+        }
+
+        .player-monitor.player2 h2 {
+            color: #764ba2;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-left: auto;
+        }
+
+        .status-indicator.online {
+            background: #27ae60;
+            box-shadow: 0 0 10px #27ae60;
+        }
+
+        .status-indicator.offline {
+            background: #e74c3c;
+            box-shadow: 0 0 10px #e74c3c;
+        }
+
+        .player-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-item .label {
+            font-size: 0.9em;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 5px;
+        }
+
+        .stat-item .value {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        .current-round-info {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+
+        .current-round-info h3 {
+            margin-bottom: 15px;
+            color: #f39c12;
+        }
+
+        .round-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .round-detail-item {
+            text-align: center;
+        }
+
+        .round-detail-item .value {
+            font-size: 1.8em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .round-detail-item.player1 .value {
+            color: #667eea;
+        }
+
+        .round-detail-item.player2 .value {
+            color: #764ba2;
+        }
+
+        .game-log {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 25px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .game-log h2 {
+            margin-bottom: 20px;
+            color: #667eea;
+        }
+
+        .log-entry {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .log-entry.round-start {
+            border-left-color: #f39c12;
+        }
+
+        .log-entry.round-end {
+            border-left-color: #27ae60;
+        }
+
+        .log-entry.player-action {
+            border-left-color: #667eea;
+        }
+
+        .log-entry .timestamp {
+            font-size: 0.8em;
+            color: rgba(255, 255, 255, 0.5);
+            margin-bottom: 5px;
+        }
+
+        .log-entry .content {
+            font-size: 1em;
+            line-height: 1.5;
+        }
+
+        .comparison-table {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 25px;
+            margin-top: 30px;
+        }
+
+        .comparison-table h2 {
+            margin-bottom: 20px;
+            color: #667eea;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        th {
+            background: rgba(102, 126, 234, 0.2);
+            font-weight: bold;
+        }
+
+        th.player1-header {
+            color: #667eea;
+        }
+
+        th.player2-header {
+            color: #764ba2;
+        }
+
+        tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .final-results {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 30px;
+            border-radius: 20px;
+            margin-top: 30px;
+            text-align: center;
+            display: none;
+        }
+
+        .final-results.show {
+            display: block;
+            animation: celebrate 0.8s ease;
+        }
+
+        @keyframes celebrate {
+            0% { transform: scale(0.8); opacity: 0; }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        footer {
+            text-align: center;
+            color: white;
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 15px;
+        }
+
+        .final-results h2 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+
+        .winner-announcement {
+            font-size: 3em;
+            font-weight: bold;
+            margin: 30px 0;
+        }
+
+        .access-links {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .access-links h2 {
+            margin-bottom: 20px;
+            color: #667eea;
+        }
+
+        .link-buttons {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .link-btn {
+            padding: 15px 40px;
+            font-size: 1.2em;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .link-btn.player1 {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .link-btn.player2 {
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+            color: white;
+        }
+
+        .link-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔬 实验管理员控制台</h1>
+            <p>公共物品博弈实验管理系统</p>
+        </header>
+
+        <div class="admin-panel">
+            <div class="access-links">
+                <h2>🎮 玩家访问链接</h2>
+                <div class="link-buttons">
+                    <a href="player1.html" class="link-btn player1" target="_blank">👤 玩家 1 入口</a>
+                    <a href="player2.html" class="link-btn player2" target="_blank">👤 玩家 2 入口</a>
+                </div>
+            </div>
+
+            <div class="control-section">
+                <div class="control-card">
+                    <h3>⏱️ 实验时间</h3>
+                    <div class="value" id="experiment-time">00:00:00</div>
+                    <div class="label">已运行时间</div>
+                </div>
+                <div class="control-card">
+                    <h3>🎯 当前轮次</h3>
+                    <div class="value" id="current-round">1/3</div>
+                    <div class="label">游戏进度</div>
+                </div>
+                <div class="control-card">
+                    <h3>👥 在线状态</h3>
+                    <div class="value" id="online-count">0/2</div>
+                    <div class="label">玩家在线</div>
+                </div>
+                <div class="control-card">
+                    <h3>📊 实验状态</h3>
+                    <div class="value" id="experiment-status">等待中</div>
+                    <div class="label">当前状态</div>
+                </div>
+            </div>
+
+            <div class="controls" style="text-align: center; margin-bottom: 30px;">
+                <button class="btn btn-primary" onclick="startExperiment()">▶️ 开始实验</button>
+                <button class="btn btn-success" onclick="resetExperiment()">🔄 重置实验</button>
+                <button class="btn btn-danger" onclick="exportData()">📥 导出数据</button>
+            </div>
+        </div>
+
+        <div class="players-comparison">
+            <div class="player-monitor player1">
+                <h2>
+                    👤 <span id="player1-name">玩家 1</span>
+                    <span class="status-indicator" id="player1-status"></span>
+                </h2>
+                <div class="player-stats">
+                    <div class="stat-item">
+                        <div class="label">当前代币</div>
+                        <div class="value" id="player1-tokens">100</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="label">总投入</div>
+                        <div class="value" id="player1-total-contribution">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="label">总收益</div>
+                        <div class="value" id="player1-total-gain">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="label">获胜轮次</div>
+                        <div class="value" id="player1-wins">0</div>
+                    </div>
+                </div>
+                <div class="current-round-info">
+                    <h3>🎲 本轮投入</h3>
+                    <div class="round-details">
+                        <div class="round-detail-item player1">
+                            <div class="label">玩家1投入</div>
+                            <div class="value" id="player1-round-contribution">-</div>
+                        </div>
+                        <div class="round-detail-item player2">
+                            <div class="label">玩家2投入</div>
+                            <div class="value" id="player2-round-contribution">-</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="player-monitor player2">
+                <h2>
+                    👤 <span id="player2-name">玩家 2</span>
+                    <span class="status-indicator" id="player2-status"></span>
+                </h2>
+                <div class="player-stats">
+                    <div class="stat-item">
+                        <div class="label">当前代币</div>
+                        <div class="value" id="player2-tokens">100</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="label">总投入</div>
+                        <div class="value" id="player2-total-contribution">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="label">总收益</div>
+                        <div class="value" id="player2-total-gain">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="label">获胜轮次</div>
+                        <div class="value" id="player2-wins">0</div>
+                    </div>
+                </div>
+                <div class="current-round-info">
+                    <h3>🎲 本轮投入</h3>
+                    <div class="round-details">
+                        <div class="round-detail-item player1">
+                            <div class="label">玩家1投入</div>
+                            <div class="value" id="player1-round-contribution-2">-</div>
+                        </div>
+                        <div class="round-detail-item player2">
+                            <div class="label">玩家2投入</div>
+                            <div class="value" id="player2-round-contribution-2">-</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="comparison-table">
+            <h2>📊 详细对比数据</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>轮次</th>
+                        <th>系数</th>
+                        <th class="player1-header">玩家1投入</th>
+                        <th class="player2-header">玩家2投入</th>
+                        <th>公共池</th>
+                        <th>每人分得</th>
+                        <th class="player1-header">玩家1最终</th>
+                        <th class="player2-header">玩家2最终</th>
+                        <th>本轮赢家</th>
+                    </tr>
+                </thead>
+                <tbody id="comparison-table-body">
+                </tbody>
+            </table>
+        </div>
+
+        <div class="game-log">
+            <h2>📜 实验日志</h2>
+            <div id="log-container">
+            </div>
+        </div>
+
+        <div class="final-results" id="final-results">
+            <h2>🎊 实验结束！</h2>
+            <div class="winner-announcement" id="winner-announcement"></div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; margin-top: 30px;">
+                <div>
+                    <h3>👤 玩家 1</h3>
+                    <div style="font-size: 3em; font-weight: bold; margin: 20px 0;" id="final-score-player1">0</div>
+                    <p>最终代币</p>
+                </div>
+                <div>
+                    <h3>👤 玩家 2</h3>
+                    <div style="font-size: 3em; font-weight: bold; margin: 20px 0;" id="final-score-player2">0</div>
+                    <p>最终代币</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 游戏配置
+        const ROUNDS = [
+            { multiplier: 1.3, type: 'low', description: '高风险' },
+            { multiplier: 2.0, type: 'medium', description: '中等风险' },
+            { multiplier: 3.0, type: 'high', description: '低风险' }
+        ];
+
+        // 实验状态
+        let experimentState = {
+            started: false,
+            startTime: null,
+            currentRound: 1,
+            player1: {
+                online: false,
+                tokens: 100,
+                totalContribution: 0,
+                totalGain: 0,
+                wins: 0,
+                currentContribution: null,
+                history: []
+            },
+            player2: {
+                online: false,
+                tokens: 100,
+                totalContribution: 0,
+                totalGain: 0,
+                wins: 0,
+                currentContribution: null,
+                history: []
+            },
+            logs: []
+        };
+
+        // 定时器
+        let updateTimer = null;
+        let timeTimer = null;
+
+        // 初始化
+        function init() {
+            loadState();
+            startUpdateTimer();
+            startTimeTimer();
+            updateUI();
+        }
+
+        // 从localStorage加载状态
+        function loadState() {
+            const savedState = localStorage.getItem('publicGoodsExperiment');
+            if (savedState) {
+                experimentState = JSON.parse(savedState);
+            }
+        }
+
+        // 保存状态到localStorage
+        function saveState() {
+            localStorage.setItem('publicGoodsExperiment', JSON.stringify(experimentState));
+        }
+
+        // 开始更新定时器
+        function startUpdateTimer() {
+            updateTimer = setInterval(() => {
+                loadState();
+                updateUI();
+            }, 1000);
+        }
+
+        // 开始时间定时器
+        function startTimeTimer() {
+            timeTimer = setInterval(() => {
+                if (experimentState.started && experimentState.startTime) {
+                    const elapsed = Math.floor((Date.now() - experimentState.startTime) / 1000);
+                    const hours = Math.floor(elapsed / 3600).toString().padStart(2, '0');
+                    const minutes = Math.floor((elapsed % 3600) / 60).toString().padStart(2, '0');
+                    const seconds = (elapsed % 60).toString().padStart(2, '0');
+                    document.getElementById('experiment-time').textContent = `${hours}:${minutes}:${seconds}`;
+                }
+            }, 1000);
+        }
+
+        // 更新UI
+        function updateUI() {
+            // 更新玩家名字（从实验状态中读取）
+            const player1Name = experimentState.player1.name || '玩家 1';
+            const player2Name = experimentState.player2.name || '玩家 2';
+            document.getElementById('player1-name').textContent = player1Name;
+            document.getElementById('player2-name').textContent = player2Name;
+
+            // 更新控制面板
+            document.getElementById('current-round').textContent = `${experimentState.currentRound}/3`;
+            document.getElementById('online-count').textContent = `${experimentState.player1.online + experimentState.player2.online}/2`;
+            document.getElementById('experiment-status').textContent = experimentState.started ? '进行中' : '等待中';
+
+            // 更新玩家状态
+            updatePlayerStatus('player1', experimentState.player1);
+            updatePlayerStatus('player2', experimentState.player2);
+
+            // 更新对比表格
+            updateComparisonTable();
+
+            // 更新日志
+            updateLogs();
+
+            // 检查游戏是否结束
+            if (experimentState.currentRound > 3) {
+                showFinalResults();
+            }
+        }
+
+        // 更新玩家状态
+        function updatePlayerStatus(playerId, player) {
+            document.getElementById(`${playerId}-status`).className = `status-indicator ${player.online ? 'online' : 'offline'}`;
+            document.getElementById(`${playerId}-tokens`).textContent = player.tokens.toFixed(2);
+            document.getElementById(`${playerId}-total-contribution`).textContent = player.totalContribution.toFixed(2);
+            document.getElementById(`${playerId}-total-gain`).textContent = player.totalGain.toFixed(2);
+            document.getElementById(`${playerId}-wins`).textContent = player.wins;
+
+            // 更新本轮投入
+            const contributionDisplay = player.currentContribution !== null ? player.currentContribution.toFixed(2) : '-';
+            document.getElementById(`${playerId}-round-contribution`).textContent = contributionDisplay;
+            document.getElementById(`${playerId}-round-contribution-2`).textContent = contributionDisplay;
+        }
+
+        // 更新对比表格
+        function updateComparisonTable() {
+            const tbody = document.getElementById('comparison-table-body');
+            tbody.innerHTML = '';
+
+            const player1Name = experimentState.player1.name || '玩家1';
+            const player2Name = experimentState.player2.name || '玩家2';
+
+            const maxRounds = Math.max(experimentState.player1.history.length, experimentState.player2.history.length);
+
+            for (let i = 0; i < maxRounds; i++) {
+                const p1History = experimentState.player1.history[i];
+                const p2History = experimentState.player2.history[i];
+
+                if (p1History && p2History) {
+                    const row = document.createElement('tr');
+                    const winner = p1History.finalTokens > p2History.finalTokens ? player1Name :
+                                   p2History.finalTokens > p1History.finalTokens ? player2Name : '平局';
+
+                    row.innerHTML = `
+                        <td>第 ${i + 1} 轮</td>
+                        <td>×${ROUNDS[i].multiplier.toFixed(1)}</td>
+                        <td style="color: #667eea; font-weight: bold;">${p1History.contribution.toFixed(2)}</td>
+                        <td style="color: #764ba2; font-weight: bold;">${p2History.contribution.toFixed(2)}</td>
+                        <td>${(p1History.contribution + p2History.contribution).toFixed(2)}</td>
+                        <td>${p1History.share.toFixed(2)}</td>
+                        <td style="color: #667eea; font-weight: bold;">${p1History.finalTokens.toFixed(2)}</td>
+                        <td style="color: #764ba2; font-weight: bold;">${p2History.finalTokens.toFixed(2)}</td>
+                        <td><strong>${winner}</strong></td>
+                    `;
+                    tbody.appendChild(row);
+                }
+            }
+        }
+
+        // 更新日志
+        function updateLogs() {
+            const container = document.getElementById('log-container');
+            container.innerHTML = '';
+
+            experimentState.logs.forEach(log => {
+                const entry = document.createElement('div');
+                entry.className = `log-entry ${log.type}`;
+                const time = new Date(log.timestamp).toLocaleTimeString();
+                entry.innerHTML = `
+                    <div class="timestamp">${time}</div>
+                    <div class="content">${log.message}</div>
+                `;
+                container.appendChild(entry);
+            });
+
+            // 滚动到底部
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // 开始实验
+        function startExperiment() {
+            if (!confirm('确定要开始实验吗？这将重置所有数据。')) {
+                return;
+            }
+
+            experimentState.started = true;
+            experimentState.startTime = Date.now();
+            experimentState.currentRound = 1;
+
+            addLog('experiment-start', '🚀 实验开始！');
+            saveState();
+            updateUI();
+        }
+
+        // 重置实验
+        function resetExperiment() {
+            if (!confirm('确定要重置实验吗？所有数据将被清除，需要重新输入玩家名字。')) {
+                return;
+            }
+
+            experimentState = {
+                started: false,
+                startTime: null,
+                currentRound: 1,
+                player1: {
+                    online: false,
+                    tokens: 100,
+                    totalContribution: 0,
+                    totalGain: 0,
+                    wins: 0,
+                    currentContribution: null,
+                    history: [],
+                    name: null
+                },
+                player2: {
+                    online: false,
+                    tokens: 100,
+                    totalContribution: 0,
+                    totalGain: 0,
+                    wins: 0,
+                    currentContribution: null,
+                    history: [],
+                    name: null
+                },
+                logs: []
+            };
+
+            document.getElementById('final-results').classList.remove('show');
+            addLog('experiment-reset', '🔄 实验已重置，请让玩家重新输入名字');
+            saveState();
+            updateUI();
+        }
+
+        // 导出数据
+        function exportData() {
+            // 创建CSV内容
+            let csvContent = '\uFEFF'; // UTF-8 BOM
+
+            // 获取玩家名字（从实验状态中读取）
+            const player1Name = experimentState.player1.name || '玩家1';
+            const player2Name = experimentState.player2.name || '玩家2';
+
+            // 实验基本信息
+            csvContent += '公共物品博弈实验数据\n';
+            csvContent += '导出时间,' + new Date().toLocaleString() + '\n';
+            csvContent += '实验开始时间,' + (experimentState.startTime ? new Date(experimentState.startTime).toLocaleString() : '未开始') + '\n';
+            csvContent += '实验状态,' + (experimentState.started ? '进行中' : '未开始') + '\n';
+            csvContent += '当前轮次,' + experimentState.currentRound + '/3\n';
+            csvContent += '实验时长,' + (experimentState.startTime ? Math.floor((Date.now() - experimentState.startTime) / 1000) + '秒' : '0秒') + '\n\n';
+
+            // 玩家统计信息
+            csvContent += '玩家统计信息\n';
+            csvContent += '项目,' + player1Name + ',' + player2Name + '\n';
+            csvContent += '当前代币,' + experimentState.player1.tokens.toFixed(2) + ',' + experimentState.player2.tokens.toFixed(2) + '\n';
+            csvContent += '总投入,' + experimentState.player1.totalContribution.toFixed(2) + ',' + experimentState.player2.totalContribution.toFixed(2) + '\n';
+            csvContent += '总收益,' + experimentState.player1.totalGain.toFixed(2) + ',' + experimentState.player2.totalGain.toFixed(2) + '\n';
+            csvContent += '获胜轮次,' + experimentState.player1.wins + ',' + experimentState.player2.wins + '\n\n';
+
+            // 详细轮次数据
+            csvContent += '详细轮次数据\n';
+            csvContent += '轮次,系数,' + player1Name + '投入,' + player2Name + '投入,公共池,乘系数后总额,每人分得,' + player1Name + '最终,' + player2Name + '最终,本轮赢家\n';
+
+            const maxRounds = Math.max(experimentState.player1.history.length, experimentState.player2.history.length);
+            for (let i = 0; i < maxRounds; i++) {
+                const p1History = experimentState.player1.history[i];
+                const p2History = experimentState.player2.history[i];
+
+                if (p1History && p2History) {
+                    const winner = p1History.finalTokens > p2History.finalTokens ? player1Name :
+                                   p2History.finalTokens > p1History.finalTokens ? player2Name : '平局';
+                    const publicPool = p1History.contribution + p2History.contribution;
+                    const totalAfterMultiplier = publicPool * ROUNDS[i].multiplier;
+
+                    csvContent += `第${i + 1}轮,`;
+                    csvContent += `${ROUNDS[i].multiplier.toFixed(1)},`;
+                    csvContent += `${p1History.contribution.toFixed(2)},`;
+                    csvContent += `${p2History.contribution.toFixed(2)},`;
+                    csvContent += `${publicPool.toFixed(2)},`;
+                    csvContent += `${totalAfterMultiplier.toFixed(2)},`;
+                    csvContent += `${p1History.share.toFixed(2)},`;
+                    csvContent += `${p1History.finalTokens.toFixed(2)},`;
+                    csvContent += `${p2History.finalTokens.toFixed(2)},`;
+                    csvContent += `${winner}\n`;
+                }
+            }
+
+            csvContent += '\n';
+
+            // 实验日志
+            csvContent += '实验日志\n';
+            csvContent += '时间,类型,消息\n';
+            experimentState.logs.forEach(log => {
+                const time = new Date(log.timestamp).toLocaleString();
+                // 转义CSV中的逗号和引号
+                const message = log.message.replace(/"/g, '""');
+                csvContent += `"${time}","${log.type}","${message}"\n`;
+            });
+
+            // 创建Blob并下载
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `公共物品博弈实验数据_${new Date().toISOString().slice(0,10)}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+
+            addLog('data-export', '📥 实验数据已导出为Excel格式');
+        }
+
+        // 添加日志
+        function addLog(type, message) {
+            experimentState.logs.push({
+                type: type,
+                message: message,
+                timestamp: Date.now()
+            });
+            saveState();
+        }
+
+        // 显示最终结果
+        function showFinalResults() {
+            const p1Total = experimentState.player1.totalGain;
+            const p2Total = experimentState.player2.totalGain;
+
+            const player1Name = experimentState.player1.name || '玩家 1';
+            const player2Name = experimentState.player2.name || '玩家 2';
+
+            let winner;
+            if (p1Total > p2Total) {
+                winner = `🎉 ${player1Name} 获胜！`;
+            } else if (p2Total > p1Total) {
+                winner = `🎉 ${player2Name} 获胜！`;
+            } else {
+                winner = '🤝 平局！';
+            }
+
+            document.getElementById('winner-announcement').textContent = winner;
+            document.getElementById('final-score-player1').textContent = p1Total.toFixed(2);
+            document.getElementById('final-score-player2').textContent = p2Total.toFixed(2);
+            document.getElementById('final-results').classList.add('show');
+        }
+
+        // 页面加载时初始化
+        window.onload = init;
+    </script>
+
+    <footer>
+        <p>公共物品博弈游戏 | 实验研究专用</p>
+    </footer>
+</body>
+</html>
